@@ -1,0 +1,27 @@
+<!--
+  Example local_rules.xml overrides from home-lab investigations.
+  Each rule is scoped to a specific, confirmed false-positive pattern —
+  see the linked investigation write-ups for the full reasoning.
+-->
+<group name="local,syslog,sysmon,">
+
+  <!-- Known FP: Sysmon telemetry gap for svchost.exe parent-process lineage
+       immediately following a host reboot or Sysmon service restart.
+       See: investigations/01-svchost-process-injection-fp -->
+  <rule id="100101" level="3">
+    <if_sid>61618</if_sid>
+    <field name="win.eventdata.targetFilename">svchost\.exe$</field>
+    <description>Likely FP: svchost.exe orphaned-parent pattern within ~2 min of a Sysmon service start. Downgraded from Level 12 — confirm timing before escalating.</description>
+  </rule>
+
+  <!-- Known FP: Ubuntu 26.04 Rust-rewritten coreutils (uutils/rust-coreutils)
+       binaries coincidentally match legacy generic trojan signatures.
+       See: investigations/02-coreutils-trojaned-file-fp
+       Vendor refs: wazuh/wazuh#32142, #35704 -->
+  <rule id="100102" level="3">
+    <if_sid>510</if_sid>
+    <field name="file">^/usr/bin/(md5sum|date|passwd|chfn|chsh)$|^/bin/(md5sum|date|passwd|chfn|chsh)$</field>
+    <description>Rootcheck false positive on Ubuntu 26.04 coreutils (uucore) — matches known Wazuh issue, not an actual compromise. See wazuh/wazuh#32142, #35704.</description>
+  </rule>
+
+</group>
